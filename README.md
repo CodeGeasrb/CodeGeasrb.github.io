@@ -1,2 +1,2 @@
 # CodeGeasrb.github.io
-Rigoberto Rincón M. Sc. Student 
+Rigoberto Rincón, M. Sc. Student 
