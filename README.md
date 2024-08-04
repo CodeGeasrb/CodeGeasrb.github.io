@@ -2,4 +2,4 @@
 Rigoberto Rincón Ballesteros
 M. Sc. Student 
 
-Personal repository with the intention to share to the public my latest projects
+Personal repository with the intention to share my latest projects
