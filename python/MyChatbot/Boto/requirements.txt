@@ -1,0 +1,11 @@
+transformers
+langchain
+langchain-community
+pinecone-client
+langchain-pinecone
+langchain_ollama
+sentence-transformers
+colab-xterm
+requests
+tqdm
+

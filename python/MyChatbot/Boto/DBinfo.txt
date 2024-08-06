@@ -1,0 +1,10 @@
+API_KEY_PINECONE: ea466f40b247-43cb-8d43-9d204b664aa0
+
+INDEX_NAME_PINECONE: chatbot
+
+
+
+
+
+
+
