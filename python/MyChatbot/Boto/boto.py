@@ -1,4 +1,4 @@
-from chatbot.app import run_app
+from app.app import run_app
 
 
 def main():

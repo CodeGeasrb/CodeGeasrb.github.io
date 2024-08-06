@@ -1,6 +1,6 @@
-from utils import run_command
-from utils import create_memory, create_qa
-from utils import header, user_input, bot_response, if_exit
+from app.utils import run_command
+from app.utils import create_memory, create_qa
+from app.utils import header, user_input, bot_response, if_exit
 from langchain_community.embeddings import HuggingFaceBgeEmbeddings
 from langchain_pinecone import Pinecone
 from langchain_community.llms import Ollama
@@ -54,24 +54,25 @@ def chat(API_KEY_PINECONE, INDEX_NAME_PINECONE):
         input = user_input()
         
         # validate if user wants to exit
-        exit = if_exit(user_input=user_input)
+        exit = if_exit(user_input=input)
         if exit:
             break
 
         # get a bot responser
-        result = qa({"question": user_input})
+        result = qa({"question": input})
         response = result['answer']
 
         # display bot response
         bot_response(response=response)
+        
         """
         if 'source_documents' in result:
             print("\nSources:")
             for doc in result['source_documents']:
                 print(doc.page_content[:100] + "...")
         """
+        
         print()
-
 
 
 

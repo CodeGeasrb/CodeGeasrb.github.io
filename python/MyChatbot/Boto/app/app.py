@@ -1,6 +1,6 @@
-from chat import chat
-from data import create_DB
-from utils import welcome, options, pinecone_access
+from app.chat import chat
+from app.data import create_DB
+from app.utils import welcome, options, pinecone_access
 import os
 
 
@@ -26,6 +26,5 @@ def run_app():
 
         option = None
         os.system('cls')
-
 
 

@@ -1,4 +1,4 @@
-from utils import process_and_upsert_documents
+from app.utils import process_and_upsert_documents
 import pinecone
 import os
 
