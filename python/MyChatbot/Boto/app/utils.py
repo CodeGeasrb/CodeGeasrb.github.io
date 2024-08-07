@@ -137,9 +137,6 @@ def pinecone_access():
 
     # input index name from a pinecone db
     INDEX_NAME_PINECONE = input('Pinecone index name: ')
-
-    # clear screen
-    os.system('cls')
     
     return API_KEY_PINECONE, INDEX_NAME_PINECONE
 
@@ -149,7 +146,7 @@ def options():
     options = ['Chat with Boto', 'Create a new DataBase', 'Exit']
     
     for number, option in enumerate(options, start=1):
-        print(f'{number}, {option}')
+        print(f'{number}. {option}')
     
     answer = None
     while answer is None:
