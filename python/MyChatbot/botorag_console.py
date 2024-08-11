@@ -64,8 +64,8 @@ import os
 """###3.Set up API Keys"""
 
 # Define up required API Keys
-os.environ["GROQ_API_KEY"] = "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"
-os.environ["PINECONE_API_KEY"] = "ea466f40-b247-43cb-8d43-9d204b664aa0"
+os.environ["GROQ_API_KEY"] = "<Insert you groq api key here>"
+os.environ["PINECONE_API_KEY"] = "<Insert you pinecone api key here>"
 
 # Set up required API Keys
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
