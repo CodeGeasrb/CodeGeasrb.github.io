@@ -50,7 +50,7 @@ Original file is located at
 # import os
 # 
 # # Define up required API Keys
-# os.environ["PINECONE_API_KEY"] = "ea466f40-b247-43cb-8d43-9d204b664aa0"
+# os.environ["PINECONE_API_KEY"] = "<Insert you pinecone api key here>"
 # 
 # # Set up required API Keys
 # PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
@@ -133,8 +133,8 @@ Original file is located at
 # 
 # 
 # # Define up required API Keys
-# os.environ["GROQ_API_KEY"] = "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"
-# os.environ["PINECONE_API_KEY"] = "ea466f40-b247-43cb-8d43-9d204b664aa0"
+# os.environ["GROQ_API_KEY"] = "<Insert you groq api key here>"
+# os.environ["PINECONE_API_KEY"] = "<Insert you pinecone api key here>"
 # 
 # # Set up required API Keys
 # GROQ_API_KEY = os.getenv("GROQ_API_KEY")
