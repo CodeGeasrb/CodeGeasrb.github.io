@@ -8,6 +8,11 @@ The BOTO RAG SYSTEM works as follows:
 1. **Database Creation**: A database is created in Pinecone, where the necessary information from PDFs is stored and indexed.
 2. **Text Generation**: The system uses the LLM to generate text based on the retrieved data.
 3. **Server Connection**: The Ollama and Groq servers handle the heavy lifting, ensuring smooth operation and accurate information extraction.
+   
+## Versions
+As you can see, there are two versions of the BOTO RAG SYSTEM:
+1. **Console Version**: This version provides a command-line interface (CLI) for interacting with the application directly through the console.
+2. **Streamlit App Version**: This version launches the application using Streamlit, providing a user-friendly web interface for interaction.
 
 ## Getting Started
 To apply this system with your own database, follow these steps:
