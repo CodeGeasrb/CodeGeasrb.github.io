@@ -1,0 +1,4 @@
+video_id,title,channel_title,published_at,view_count,like_count
+kZaucITWv00,Primer Debate Presidencial - México 2024,INETV,2024-04-08T04:01:19Z,1877047,40947
+0osEeTQLk3Q,Segundo Debate Presidencial 2024 Completo | Imagen Noticias,Imagen Noticias,2024-04-29T04:22:53Z,433246,3476
+DEbALmrsZs8,Tercer debate presidencial 2024 | Programa completo,EXCELSIOR,2024-05-20T04:44:35Z,1701336,13252
