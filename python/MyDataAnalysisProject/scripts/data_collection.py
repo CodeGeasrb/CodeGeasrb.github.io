@@ -1,10 +1,15 @@
+# Import required tools
 from googleapiclient.discovery import build
+import uuid
 import sys
 import os
 
+
+# Add project directory to the path
 sys.path.append('../data_analysis_project')
 
-from utils.fuctions import collect_youtube_video_data
+# Import required functions
+from utils.fuctions import collect_youtube_video_data, save_to_db
 
 # Define a YT API Key
 youtube_api_key = "AIzaSyAfoJ94EZmxu-GdSrDfuH9lQoZigkGd7aY"
@@ -18,19 +23,19 @@ videos_ids = ["kZaucITWv00", "0osEeTQLk3Q", "DEbALmrsZs8"]
 # Collect data
 videos_data, comments_data = collect_youtube_video_data(videos_ids=videos_ids, youtube=youtube)
 
-# Define project directory
-current_dir = os.getcwd()
+# Create a new column with 4 digits-unique IDs for comments
+comments_data['comment_id'] = [str(uuid.uuid4()) for _ in range(comments_data.shape[0])]
 
-# Define a path to save data
-data_dir = os.path.join(current_dir, "data", "raw_data") 
+# Get project directory
+project_dir = os.getcwd()
 
-# Define data paths
-videos_data_path = os.path.join(data_dir, "videosData.txt")
-comments_data_path =os.path.join(data_dir, "commentsData.txt")
+# Get/Create a data directory (all data will be saved here)
+data_dir = os.path.join(project_dir, "data")
+os.makedirs(data_dir, exist_ok=True) # check if directory exists, if not, create it
 
-# save data in a csv format
-videos_data.to_csv(path_or_buf=videos_data_path, index=False)
-comments_data.to_csv(path_or_buf=comments_data_path, index=False)
+# Load data into a DataBase
+save_to_db(dataframe=videos_data, db_dir=data_dir, db_name="youtube_data_analysis.db", table_name="videos")
+save_to_db(dataframe=comments_data, db_dir=data_dir, db_name="youtube_data_analysis.db", table_name="comments")
 
 
 

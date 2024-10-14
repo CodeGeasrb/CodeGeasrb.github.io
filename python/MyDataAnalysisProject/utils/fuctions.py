@@ -2,8 +2,123 @@ from wordcloud import WordCloud, STOPWORDS
 import matplotlib.pyplot as plt
 from collections import Counter
 import pandas as pd
+import sqlite3
 import emoji
+import os
 import re
+
+
+# Dictionary of common emojis translations to spanish
+"""
+emoji_translations = {
+    ':grinning_face:': 'cara sonriendo',
+    ':smiling_face_with_smiling_eyes:': 'cara sonriente con ojos sonrientes',
+    ':face_with_tears_of_joy:': 'cara con lágrimas de alegría',
+    ':rolling_on_the_floor_laughing:': 'rodando por el suelo riendo',
+    ':smiling_face_with_heart_eyes:': 'cara sonriente con ojos de corazón',
+    ':winking_face:': 'cara guiñando un ojo',
+    ':face_savoring_food:': 'cara saboreando comida',
+    ':thumbs_up:': 'pulgar hacia arriba',
+    ':clapping_hands:': 'manos aplaudiendo',
+    ':raising_hands:': 'manos levantadas',
+    ':heart:': 'corazón',
+    ':broken_heart:': 'corazón roto',
+    ':crying_face:': 'cara llorando',
+    ':angry_face:': 'cara enojada',
+    ':thinking_face:': 'cara pensativa',
+    ':shushing_face:': 'cara pidiendo silencio',
+    ':nauseated_face:': 'cara con náuseas',
+    ':sleeping_face:': 'cara durmiendo',
+    ':star_struck:': 'cara con ojos de estrella',
+    ':party_popper:': 'confeti',
+    ':sparkles:': 'brillantes',
+    ':fire:': 'fuego',
+    ':hundred_points:': 'cien puntos',
+    ':peace_symbol:': 'símbolo de paz',
+    ':victory_hand:': 'mano de victoria',
+    ':pensive_face:': 'cara pensativa',
+    ':face_with_monocle:': 'cara con monóculo',
+}
+"""
+
+
+# Dictionary of common intentional orthography mexican errors
+orthography_corrections = {
+    # common abbreviations
+    "esc": "escuela",
+    "q": "que",
+    "xq": "porque",
+    "xk": "porque",
+    "tmb": "también",
+    "tb": "también",
+    "pa": "para",
+    "k": "que",
+    "ke": "que",
+    "x": "por",
+    "xa": "para",
+    "xfa": "por favor",
+    "pq": "porque",
+    "tqm": "te quiero mucho",
+    "bno": "bueno",
+    "dnd": "dónde",
+    "cmo": "cómo",
+    "cm": "cómo",
+    "xfin": "por fin",
+    "ntp": "no te preocupes",
+    "vrdd": "verdad",
+    "vdd": "verdad",
+    "grx": "gracias",
+    "grcs": "gracias",
+    "kmo": "como",
+    "msj": "mensaje",
+    "x eso": "por eso",
+    "bss": "besos",
+    "bye": "adiós",
+    # phonetic errors or colloquial adaptations
+    "ta": "está",
+    "toy": "estoy",
+    "pa'": "para",
+    "na'": "nada",
+    "toa": "toda",
+    "asi": "así",
+    "io": "yo",
+    "d": "de",
+    "i": "y",
+    "ora": "ahora",
+    "pos": "pues",
+    "oie": "oye",
+    "creo k": "creo que",
+    "aki": "aquí",
+    "alli": "allí",
+    "deveras": "de veras",
+    "ke onda": "qué onda",
+}
+
+
+# Define spanish stop words
+stop_words = [
+    'a', 'al', 'algo', 'alguien', 'algún', 'alguna', 'algunas', 'algunos', 'ambos', 'ante', 'antes', 'aki', 'abajo', 
+    'bien', 'como', 'comó', 'con', 'cmo', 'cual', 'cuando', 'cuándo', 'donde', 'dónde', 'durante', 'el', 'él', 'ella', 
+    'ellas', 'ellos', 'en', 'entre', 'era', 'eras', 'éramos', 'eran', 'es', 'esa', 'esas', 'ese', 'esos', 'esta', 
+    'estaba', 'estabas', 'estaban', 'estamos', 'estar', 'este', 'esto', 'estos', 'estoi', 'toy', 'fue', 'fui', 
+    'fuese', 'fuesen', 'fueron', 'siendo', 'sino', 'son', 'soy', 'tal', 'tambn', 'tambien', 'también', 'tan', 'tanta', 
+    'tantas', 'tanto', 'tantos', 'te', 'ti', 'tienes', 'tiene', 'tienen', 'tu', 'tú', 'tus', 'un', 'uno', 'unos', 
+    'una', 'unas', 'veses', 'veces', 'y', 'ya', 'io', 'yo', 'mi', 'mí', 'mios', 'míos', 'tuyo', 'tuyos', 'suyo', 
+    'suyos', 'mio', 'nos', 'nosotros', 'vosotros', 'su', 'sí', 'si', 'les', 'los', 'nuestras', 'nuestras', 'nuestros', 
+    'otros', 'otra', 'otras', 'o', 'os', 'se', 'sé', 'asi', 'así', 'alli', 'allá', 'aka', 'aquí', 'ora', 'ahora', 
+    'apenas', 'ante', 'aun', 'aún', 'además', 'aunque', 'como', 'cómo', 'contra', 'cual', 'cuales', 'cuando', 
+    'cuándo', 'desde', 'de', 'despues', 'después', 'dice', 'dijo', 'dixo', 'dicho', 'donde', 'dónde', 'dos', 'durante', 
+    'e', 'él', 'ella', 'ellas', 'ellos', 'en', 'entre', 'era', 'eras', 'eran', 'es', 'esa', 'esas', 'ese', 'eso', 
+    'esos', 'esta', 'estan', 'están', 'estar', 'este', 'esto', 'estos', 'toy', 'toi', 'fue', 'fui', 'fueron', 
+    'fueron', 'fuesen', 'fui', 'hago', 'izo', 'hizo', 'hemos', 'asta', 'hasta', 'hay', 'iba', 'iban', 'iwal', 'igual', 
+    'incluso', 'ir', 'está', 'estabamos', 'estamos', 'estan', 'iban', 'igual', 'incluso', 'ir', 'acia', 'hacia', 'ha', 
+    'había', 'había', 'asta', 'hice', 'izo', 'hizo', 'la', 'las', 'lo', 'los', 'más', 'mas', 'menos', 'me', 'mí', 
+    'misma', 'mismas', 'mismo', 'mismos', 'muy', 'mucho', 'muxo', 'muchos', 'nada', 'ni', 'no', 'nos', 'nosotros', 
+    'o', 'otra', 'otras', 'otros', 'para', 'pero', 'poco', 'por', 'porq', 'porque', 'porqué', 'cual', 'cuál', 
+    'cuales', 'cuáles', 'cuando', 'cuándo', 'que', 'qué', 'se', 'sin', 'sobre', 'soy', 'sólo', 'solo', 'su', 'sus', 
+    'también', 'tambn', 'tan', 'tanta', 'tantas', 'tanto', 'tantos', 'tiene', 'tu', 'tuya', 'tuyas', 'tuyo', 'tuyos', 
+    'un', 'una', 'unas', 'uno', 'unos', 'ya'
+]
 
 
 # Function to retrieve metadata of an specific youtube video
@@ -101,59 +216,101 @@ def collect_youtube_video_data(videos_ids, youtube):
     return videos_data, comments_data
 
 
-# Function to apply a  basic cleanning process in comments text
-def basic_text_cleaning(text):
-    # convert text to lowercase
+# Function to save data into a sqlite db
+def save_to_db(dataframe, db_dir, db_name, table_name):
+    # create path where db will be save
+    db_path = os.path.join(db_dir, db_name)
+    # connect to db
+    conn = sqlite3.connect(db_path)
+    # save dataframe in a table into the db
+    dataframe.to_sql(table_name, conn, if_exists='replace', index=False)
+    # close connection
+    conn.close()
+
+
+# Function to make sql query in a db en retrive result in a dataframe
+def make_sql_query(db_dir, db_name, query):
+    # create path where db will be save
+    db_path = os.path.join(db_dir, db_name)
+    # connect to db
+    conn = sqlite3.connect(db_path)
+    # save query result in a df
+    dataframe = pd.read_sql(query, conn)
+    # close connection
+    conn.close()
+    return dataframe
+
+
+# Function to correct datetime format
+def correct_datetime(datetime):
+    # correct datetime to a more suitable format
+    datetime = pd.to_datetime(datetime)
+    return datetime
+
+
+# Function to remove special characters in text
+def remove_special_characters(text):
+    # text in lower case
     text = text.lower()
-    # remove urls
-    text = re.sub(r'http\S+|www.\S+', '', text)  
-    # remove mentions
+    # remove HTML tags and attributes
+    text = re.sub(r'<[^>]+>', '', text) 
+    # remove URLs
+    text = re.sub(r'https?://\S+|www\.\S+', '', text)  # Remove full URLs
+    # remove mentions "@" but keep the username
     text = re.sub(r'@\w+', '', text)
-    # remove Hashtags  
-    text = re.sub(r'#\w+', '', text)
-    # normalize blank space use
-    text = re.sub(r'\s+', ' ', text).strip()
+    # remove hashtags but keep the word
+    text = re.sub(r'(?<=#)\w+', '', text)
+    # remove punctuation at the end of words (except for ? and !)
+    text = re.sub(r'(\b\w+)[.,;:]+', r'\1', text)  
+    # keep only letters, digits, spaces, and the specified punctuation
+    text = re.sub(r'[^a-zA-Z\s¡!¿?]', '', text)  # Remove other unwanted characters
+    # normalize blank spaces
+    text = re.sub(r'\s+', ' ', text).strip()  # Normalize multiple spaces to a single space
     return text
 
 
-# Function to apply specific cleanning process in text for common words analysis
-def common_words_cleanning(text, stopwords):
-    # basic cleanning
-    text = basic_text_cleaning(text)
-    # remove emojis, symbols and pictograms
-    emoji_pattern = re.compile("["
-                           u"\U0001F600-\U0001F64F"  
-                           u"\U0001F300-\U0001F5FF"  
-                           u"\U0001F680-\U0001F6FF"  
-                           u"\U0001F700-\U0001F77F"  
-                           u"\U0001F780-\U0001F7FF"
-                           u"\U0001F800-\U0001F8FF"
-                           u"\U0001F900-\U0001F9FF"
-                           u"\U0001FA00-\U0001FA6F"
-                           u"\U0001FA70-\U0001FAFF"
-                           u"\U00002702-\U000027B0"  
-                           u"\U000024C2-\U0001F251" 
-                           "]+", flags=re.UNICODE)
-    text = emoji_pattern.sub(r'', text)
-    # remove special characters
-    text = re.sub(r'[^a-z0-9áéíóúÁÉÍÓÚñÑ ]', '', text)
-    # divide text into words
+# Function to correct mexican-spanish orthography
+def correct_ortography(text):
+    # split text into single words
     words = text.split()
-    # remove stopwords
-    words = [word for word in words if word not in stopwords]
-    return ' '.join(words)
+    # return the corrected word if it is in corrections dictionary
+    return ' '.join(orthography_corrections.get(word, word) for word in words)
 
 
-# Function to apply specific cleanning process in text for sentiment analysis
-def sentiment_analysis_cleanning(text):
-    # basic cleanning
-    text = basic_text_cleaning(text)
-    # convert emojis into text
-    text = emoji.demojize(text)
-    # remove special characters, except relevants for sentiment analysis
-    text = re.sub(r'[^a-zA-Z0-9\s¡!¿?.,;]', '', text)
-    # Dvide text and remove stopwords
+# Function to remove spanish stop words
+def remove_stop_words(text):
+    # split text into single words
+    words = text.split()
+    # return text without stop words
+    return ' '.join(word for word in words if word not in stop_words)
+
+
+# Function to preprocess text
+def preprocess_text(text):
+    # remove special characters
+    text = remove_special_characters(text=text)
+    # correct intentional ortography errors
+    text = correct_ortography(text=text)
+    # remove stop words
+    text = remove_stop_words(text=text)
+    # lemmatize text
+    
     return text
+
+
+# Function to split emoji names in the text
+def split_emoji_text(text):
+    # use a regular expression to find the names of emojis and add spaces
+    emoji_pattern = re.compile(r':[a-zA-Z0-9_]+:')
+    # find a match with emoji pattern
+    emojis_found = emoji_pattern.findall(text)
+    # add blank space between emojis translations
+    for emoji_name in emojis_found:
+        text = text.replace(emoji_name, emoji_name + ' ') 
+    return text.strip()     # remove blank space remaining
+
+
+
 
 """
 # Function to get more frequent words
