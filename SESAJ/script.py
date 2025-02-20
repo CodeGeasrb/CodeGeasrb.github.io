@@ -1,5 +1,6 @@
 # Importar librerías
 from collections import defaultdict
+from openpyxl import load_workbook
 import pandas as pd
 import re
 import sys
@@ -21,7 +22,7 @@ patron = r'\[E\d+[A-Za-z]?\.\d+[A-Za-z]?\]'
 
 # Función para extraer las preguntas, respuestas y frecuencias
 def extraer_preguntas_respuestas_y_frecuencia(df):
-    codigos_preguntas_agrupadas = defaultdict(lambda: {'pregunta': None, 'respuesta': None, 'conteo_total': 0})
+    codigos_preguntas_agrupadas = defaultdict(lambda: {'pregunta': None, 'respuesta': None, 'conteo': 0})
 
     for columna in df.columns:
         for respuesta in df[columna]:
@@ -72,12 +73,42 @@ df_resultado['Inciso'] = df_resultado['Código'].str[-2] # Inciso de respuesta
 # Dar formato final al df
 df_resultado = df_resultado[['Eje', 'Pregunta', 'Respuesta', 'Inciso', 'Conteo']]       # Omitimos la columna del código
 
+# Limpiar el formato de las preguntas eliminando prefijos y sufijos
+df_resultado['Pregunta'] = df_resultado['Pregunta'].str.replace(r'^[A-Z0-9]+\.?\s*|\.\d+$', '', regex=True)
+
+# Total de respuestas
+df_resultado['Total_Pregunta'] = df_resultado.groupby(['Eje', 'Pregunta'])['Conteo'].transform('sum')
+
+# Calcular porcentajes
+df_resultado['Porcentaje'] = (df_resultado["Conteo"] / df_resultado["Total_Pregunta"]) * 100
+
+# Redondear porcentajes
+df_resultado['Porcentaje'] = df_resultado['Porcentaje'].round(3)
+
+# Seleccionar las columnas para el reporte
+df_reporte = df_resultado[["Eje", "Pregunta", "Respuesta", "Conteo", "Porcentaje"]]
+
+# Filtrar las preguntas del box
+df_reporte = df_reporte[df_reporte['Pregunta'] != '¿Desea agregar información adicional a la acción que eligió en la pregunta anterior? ']
+
+# Exportar reporte
+df_reporte.to_excel('reporte_formulario_planeación_CC.xlsx', index=False)
+
 # Exportar el Archivo
-df_resultado.to_excel('archivo_procesado.xlsx', index=False)
+#df_resultado.to_excel('archivo_procesado', index=False)
 
-print(f'Archivo {nombre_archivo} procesado correctamente!')
+# Abrir archivo excel
+work_book = load_workbook('reporte_formulario_planeación_CC.xlsx')
+work_sheet = work_book.active
 
+# Aplicar filtros a las columnas
+work_sheet.auto_filter.ref = work_sheet.dimensions
 
+# Guardar cambios
+work_book.save('reporte_formulario_planeación_CC.xlsx')
+
+# Imprimir en pantalla
+print(f'Archivo {nombre_archivo} procesado correctamente y almacenado como "reporte_formulario_planeación_CC.xlsx"!')
 
 
 
